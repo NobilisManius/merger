@@ -1,56 +1,40 @@
 import os, sys
 import table
+from logic import Liberty
 
 data_dir = "data"
-data_lines = []
-data_tables = []
-indexes = []
+data_files = []
+values = []
+tables = []
+keys = []
+final_data = {}
 
 if __name__ == '__main__':
 
     data = os.listdir(data_dir)
 
-    f1 = open(data_dir + '/' + data[0], mode='r')
-    f2 = open(data_dir + '/' + data[1], mode='r')
+    for count, file in enumerate(data):
+        lib = Liberty.load(data_dir + '/' + data[count])
+        data_files.append(lib)
 
-    temp_data_1 = []
+    for lib in data_files:
+        for name, value in lib.lu_table_template.items():
+            keys.append(name)                   # It supposed to work in a different way but,,,
+            values.append(value)
 
-    temp_data_2 = []
+    for key in keys:
+        data_table = ''
+        for value in values:
+            if value.name == key:
+                data_table = data_table + value.index_1 + '\n'
+        final_data[key] = data_table
 
-    for line in f1.readlines():
-        temp_data_1.append(line)
 
-    for line in f2.readlines():
-        temp_data_2.append(line)
 
-    for i in range(0, len(temp_data_1)):
-        if temp_data_1[i] != temp_data_2[i]:
-            indexes.append(i)
+    final_lib = data_files[0]
+    final_lib.lu_table_template.clear()
+    for key, table in final_data.items():
+        final_lib.lu_table_template[key] = table
 
-    temp_data_1.clear()
-    temp_data_2.clear()
-
-    i = 0
-    for file in data:
-        data_lines.append([])
-        f = open(data_dir + '/' + file, mode='r')
-        current_file_data = f.readlines()
-        j = 0
-        for line in current_file_data:
-            if j in indexes:
-                data_lines[i].append(line)
-            j = j + 1
-        i = i + 1
-        f.close()
-    i = 0
-
-    temp = ''
-    for j in range(0, len(data_lines[0])):
-        for i in range(len(data_lines)):
-            temp = temp + data_lines[i][j]
-        data_tables.append(temp)
-        temp = ''
-
-for item in data_tables:
-    print(item)
-    print('---------------')
+    # with open(data_dir + 'final_solution', 'w', encoding='utf-8') as final_solution:
+    #     final_lib.dump(final_solution, '0')
