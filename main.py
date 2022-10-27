@@ -36,5 +36,5 @@ if __name__ == '__main__':
     for key, table in final_data.items():
         final_lib.lu_table_template[key] = table
 
-    # with open(data_dir + 'final_solution', 'w', encoding='utf-8') as final_solution:
-    #     final_lib.dump(final_solution, '0')
+    # with open('results' + '/' + 'final_solution' + '.lib', 'w', encoding='utf-8') as final_solution:
+    #     final_lib.dump(final_solution, '')
