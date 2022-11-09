@@ -1,40 +1,48 @@
-import os, sys
-import table
-from logic import Liberty
+import funcs
+import copy
 
 data_dir = "data"
-data_files = []
+
+key = ''
 values = []
-tables = []
-keys = []
-final_data = {}
 
 if __name__ == '__main__':
 
-    data = os.listdir(data_dir)
+    # final_data = funcs.template_merge(data_dir)
 
-    for count, file in enumerate(data):
-        lib = Liberty.load(data_dir + '/' + data[count])
-        data_files.append(lib)
+    data_files = funcs.data_load(data_dir)
 
     for lib in data_files:
-        for name, value in lib.lu_table_template.items():
-            keys.append(name)                   # It supposed to work in a different way but,,,
+        for name, value in lib.cell.items():
+            if len(key) == 0:
+                key = name
             values.append(value)
 
-    for key in keys:
-        data_table = ''
-        for value in values:
-            if value.name == key:
-                data_table = data_table + value.index_1 + '\n'
-        final_data[key] = data_table
+    for item in values:
+        keys_bus = []
+        values_bus = []
+        bus_data = {}
+        for name, value in item.bus.items():
+            keys_bus.append(name)                 # ???
+            values_bus.append(value)
+
+        for key in keys_bus:
+            for value in values_bus:
+                if value.name == key:
+                    for item in value.pin.values():
+                        if hasattr(item, 'timing') == True:
+                            print(item.timing[0].cell_rise.items())
+                            print(item.timing[0].cell_fall.items())
+                            print(item.timing[0].fall_transition.items())
+                            print(item.timing[0].rise_transition.items())
 
 
 
-    final_lib = data_files[0]
-    final_lib.lu_table_template.clear()
-    for key, table in final_data.items():
-        final_lib.lu_table_template[key] = table
+
+
+
+    print('a')
+
 
     # with open('results' + '/' + 'final_solution' + '.lib', 'w', encoding='utf-8') as final_solution:
-    #     final_lib.dump(final_solution, '')
+    #     final_data.dump(final_solution, '')
