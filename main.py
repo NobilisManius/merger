@@ -3,7 +3,7 @@ import copy
 
 data_dir = "data"
 
-key = ''
+cell_name = ''
 values = []
 timing_pin_names = []
 
@@ -18,14 +18,16 @@ if __name__ == '__main__':
 
     for lib in data_files:
         for name, value in lib.cell.items():
-            if len(key) == 0:
-                key = name
+            if len(cell_name) == 0:
+                cell_name = name
             values.append(value)
 
     for item in values:
         keys_bus = []
         values_bus = []
         bus_data = {}
+        bus_final_data = {}
+
         for name, value in item.bus.items():
             keys_bus.append(name)
             values_bus.append(value)
@@ -38,61 +40,106 @@ if __name__ == '__main__':
                             timing_pin_names.append(item.name)
                 timing_pin_names = list(set(timing_pin_names))
 
-        for key in keys_bus:
-            for value in values_bus:
-                for pin_instance in value.pin:
-                    if pin_instance in timing_pin_names:
-                        if pin_instance not in timing_data:
-                            pins.append(pin_instance)
-                            timing_data[pin_instance] = []
 
-                        if pin_instance in timing_data:
-                            timing_data[pin_instance].append(value.pin[pin_instance].timing)
-
-        for pin in timing_data:
-            cell_fall_data = []
-            cell_rise_data = []
-            fall_transition_data = []
-            rise_transition_data = []
-            temp_keys = []
-            for item in timing_data[pin]:
-                for instance in item:
-                    cell_fall_data.append(instance.cell_fall)
-                    cell_rise_data.append(instance.cell_rise)
-                    fall_transition_data.append(instance.fall_transition)
-                    rise_transition_data.append(instance.rise_transition)
-
-            # TODO: Cringe. I'll change it later.
-            #       Redo it as func.
-            for template in cell_fall_data:
-                temp_keys.append(list(template.keys()))
-
-            temp = []
-            for item in temp_keys:
-                temp.append(item[0])
-
-            temp_keys = list(set(temp))
-            temp = []
-            # Cringe.
-
-            # TODO:     Пересобирать temp, этот вариант неправильный
-            for key in temp_keys:
-                for item in cell_fall_data:
-                    if key in item:
-                        temp.append(item[key].values)
-
-            # TODO:     В общем
-            #           всё это создано для распихивания всех вещей по спискам для дальнейшего объединения
-            #           Сейчас все данные лежат в temp, надо их объединять в одно и передавать куда то дальше
-            #           Скорее всего в какой-то дикт и потом по ссылке на него получать обратно всё
-            #           Dict должен так выглядеть
-            #           pin_instance -> template_name -> final_values
-            #           Он будет вложен, да
+        for value in values_bus:
+            for pin_instance in value.pin:
+                if pin_instance in timing_pin_names:
+                    if pin_instance not in timing_data:
+                        pins.append(pin_instance)
+                        timing_data[pin_instance] = []
+                    if pin_instance in timing_data:
+                        timing_data[pin_instance].append(value.pin[pin_instance].timing)
 
 
-            print('sas')
+        for key in pins:
+            bus_final_data[key] = timing_data[key][0]
 
-    print('sas')
 
-    # with open('results' + '/' + 'final_solution' + '.lib', 'w', encoding='utf-8') as final_solution:
-    #     final_data.dump(final_solution, '')
+    for key in pins:
+        cell_fall_data = []
+        cell_rise_data = []
+        fall_transition_data = []
+        rise_transition_data = []
+
+        temp_cell_fall_data = []
+        temp_cell_rise_data = []
+        temp_fall_transition_data = []
+        temp_rise_transition_data = []
+
+        cell_fall_name = ''
+        cell_rise_name = ''
+        fall_transition_name = ''
+        rise_transition_name = ''
+
+        temp_value = ''
+
+        for item in timing_data[key]:
+            cell_fall_data.append(item[0].cell_fall)
+            cell_rise_data.append(item[0].cell_rise)
+            fall_transition_data.append(item[0].fall_transition)
+            rise_transition_data.append(item[0].rise_transition)
+
+        # TODO: Redo everything as func
+
+        for item in cell_fall_data:
+            for name, value in item.items():
+                cell_fall_name = name
+                temp_cell_fall_data.append(value.values)
+
+        for item in cell_rise_data:
+            for name, value in item.items():
+                cell_rise_name = name
+                temp_cell_rise_data.append(value.values)
+
+        for item in fall_transition_data:
+            for name, value in item.items():
+                fall_transition_name = name
+                temp_fall_transition_data.append(value.values)
+
+        for item in rise_transition_data:
+            for name, value in item.items():
+                rise_transition_name = name
+                temp_rise_transition_data.append(value.values)
+
+        for value in temp_cell_fall_data:
+            temp_value = temp_value + value + '\n'
+        cell_fall_data.clear()
+        cell_fall_data = temp_value
+        temp_value = ''
+
+        for value in temp_cell_rise_data:
+            temp_value = temp_value + value + '\n'
+        cell_rise_data.clear()
+        cell_rise_data = temp_value
+        temp_value = ''
+
+        for value in temp_fall_transition_data:
+            temp_value = temp_value + value + '\n'
+        fall_transition_data.clear()
+        fall_transition_data = temp_value
+        temp_value = ''
+
+        for value in temp_rise_transition_data:
+            temp_value = temp_value + value + '\n'
+        rise_transition_data.clear()
+        rise_transition_data = temp_value
+        temp_value = ''
+
+
+
+        bus_final_data[key][0].cell_fall[cell_fall_name].values = cell_fall_data
+        bus_final_data[key][0].cell_rise[cell_rise_name].values = cell_rise_data
+        bus_final_data[key][0].fall_transition[fall_transition_name].values = fall_transition_data
+        bus_final_data[key][0].rise_transition[rise_transition_name].values = rise_transition_data
+
+    for key in keys_bus:
+        for item in pins:
+            if item in values[0].bus[key].pin:
+                values[0].bus[key].pin[item].timing[0] = bus_final_data[item][0]
+
+    final_bus_data = values[0]
+
+    data_files[0].cell[cell_name] = final_bus_data
+
+    with open('results' + '/' + 'final_solution' + '.lib', 'w', encoding='utf-8') as final_solution:
+        data_files[0].dump(final_solution, '')
