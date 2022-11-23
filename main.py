@@ -73,6 +73,8 @@ if __name__ == '__main__':
 
         temp_value = ''
 
+        tab_string = ''
+
         for item in timing_data[key]:
             cell_fall_data.append(item[0].cell_fall)
             cell_rise_data.append(item[0].cell_rise)
@@ -100,6 +102,10 @@ if __name__ == '__main__':
             for name, value in item.items():
                 rise_transition_name = name
                 temp_rise_transition_data.append(value.values)
+
+        # TODO: There gonna be a condition for choose a tab.
+        # smth like if (cycle > 0) -> tab_string = '\t'
+        #           else -> tab_string = ''
 
         for value in temp_cell_fall_data:
             temp_value = temp_value + value + '\n'
