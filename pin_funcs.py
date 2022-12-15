@@ -4,18 +4,25 @@ def data_pin_init(timing_data, key):
     fall_transition_data = []
     rise_transition_data = []
 
-    if hasattr(timing_data[key][0][0], 'cell_fall'):
-        for item in timing_data[key]:
-            cell_fall_data.append(item[0].cell_fall)
-            cell_rise_data.append(item[0].cell_rise)
-            fall_transition_data.append(item[0].fall_transition)
-            rise_transition_data.append(item[0].rise_transition)
+    for pin in timing_data[key]:
+        if hasattr(pin[0], 'cell_fall'):
+            for item in pin:
+                cell_fall_data.append(item.cell_fall)
+                cell_rise_data.append(item.cell_rise)
+                fall_transition_data.append(item.fall_transition)
+                rise_transition_data.append(item.rise_transition)
     return cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data
 
 
+# TODO: make a dict in temp_data
 def table_merge(data):
-    temp_data = []
+    all_data = []
     temp_value = ''
+    temp_data = []
+    names = []
+    temp_dict = {}
+
+    data_name = set()
 
     left_bracket = ''
     right_bracket = ''
@@ -26,29 +33,49 @@ def table_merge(data):
 
     for item in data:
         for name, value in item.items():
-            data_name = name
-            temp_data.append(value.values)
+            data_name.add(name)
+            all_data.append({name: value.values})
 
-    for counter, value in enumerate(temp_data):
-        if counter == 0:
-            left_bracket = '('
-        else:
-            tab = '\t\t\t\t\t'
-        if counter == len(temp_data) - 1:
-            right_bracket = ')'
-            line_feed = ''
-        else:
-            comma = ','
+    for item in all_data:
+        for name, values  in item.items():
+            names.append(name)
 
-        temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + line_feed
+    names = list(set(names))
 
-        tab = ''
-        left_bracket = ''
-        right_bracket = ''
-        comma = ''
-        line_feed = '\n'
+    for name in names:
+        for item in all_data:
+            if name in item.keys():
+                temp_data.append(item[name])
+        temp_dict[name] = temp_data
+        temp_data = []
 
-    return temp_value, data_name
+    all_data.clear()
+
+    for name, values in temp_dict.items():
+        temp_data = temp_dict[name]
+        temp_value = ''
+
+        for counter, value in enumerate(temp_data):
+            if counter == 0:
+                left_bracket = '('
+            else:
+                tab = '\t\t\t\t\t'
+            if counter == len(value) - 1:
+                right_bracket = ')'
+                line_feed = ''
+            else:
+                comma = ','
+
+            temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + line_feed
+
+            tab = ''
+            left_bracket = ''
+            right_bracket = ''
+            comma = ''
+            line_feed = '\n'
+
+        all_data.append({name: temp_value})
+    return all_data, list(data_name)
 
 
 def final_pin_data(data_files):
@@ -95,15 +122,23 @@ def final_pin_data(data_files):
         if hasattr(timing_data[key][0][0], 'cell_fall'):
             cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data = data_pin_init(timing_data, key)
 
-            cell_fall_data, cell_fall_name = table_merge(cell_fall_data)
-            cell_rise_data, cell_rise_name = table_merge(cell_rise_data)
-            fall_transition_data, fall_transition_name = table_merge(fall_transition_data)
-            rise_transition_data, rise_transition_name = table_merge(rise_transition_data)
+            cell_fall_data, cell_fall_names = table_merge(cell_fall_data)
+            cell_rise_data, cell_rise_names = table_merge(cell_rise_data)
+            fall_transition_data, fall_transition_names = table_merge(fall_transition_data)
+            rise_transition_data, rise_transition_names = table_merge(rise_transition_data)
 
-            pins_final_data[key][0].cell_fall[cell_fall_name].values = cell_fall_data
-            pins_final_data[key][0].cell_rise[cell_rise_name].values = cell_rise_data
-            pins_final_data[key][0].fall_transition[fall_transition_name].values = fall_transition_data
-            pins_final_data[key][0].rise_transition[rise_transition_name].values = rise_transition_data
+            for index, name in enumerate(cell_fall_names):
+                if name in pins_final_data[key][index].cell_fall.keys():
+                    pins_final_data[key][index].cell_fall[cell_fall_names[index]].values = cell_fall_data[index][name]
+            for index, name in enumerate(cell_rise_names):
+                if name in pins_final_data[key][index].cell_rise.keys():
+                    pins_final_data[key][index].cell_rise[cell_rise_names[index]].values = cell_rise_data[index][name]
+            for index, name in enumerate(fall_transition_names):
+                if name in pins_final_data[key][index].fall_transition.keys():
+                    pins_final_data[key][index].fall_transition[fall_transition_names[index]].values = fall_transition_data[index][name]
+            for index, name in enumerate(rise_transition_names):
+                if name in pins_final_data[key][index].rise_transition.keys():
+                    pins_final_data[key][index].rise_transition[rise_transition_names[index]].values = rise_transition_data[index][name]
 
     for key in keys_pins:
         for obj in pins:
