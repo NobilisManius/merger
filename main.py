@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     final_bus_data = bus_funcs.final_bus_data(data_files)
 
-    data_files[0].cell[cell_name] = final_bus_data              # А как работает... cell_name то не задан
+    data_files[0].cell[cell_name] = final_bus_data
 
     values = pin_funcs.final_pin_data(data_files)
 

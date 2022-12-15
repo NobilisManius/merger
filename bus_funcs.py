@@ -15,17 +15,37 @@ def data_load(data_dir):
 def table_merge(data):
     temp_data = []
     temp_value = ''
+
+    left_bracket = ''
+    right_bracket = ''
+    tab = ''
+    quotes = '\"'
+    comma = ''
+    line_feed = '\n'
+
     for item in data:
         for name, value in item.items():
             data_name = name
             temp_data.append(value.values)
 
-    for value in temp_data:
-        temp_value = temp_value + value + '\n'
+    for counter, value in enumerate(temp_data):
+        if counter == 0:
+            left_bracket = '('
+        else:
+            tab = '\t\t\t\t\t'
+        if counter == len(temp_data) - 1:
+            right_bracket = ')'
+            line_feed = ''
+        else:
+            comma = ','
 
-    # TODO: There gonna be a condition for choose a tab.
-    # smth like if (cycle > 0) -> tab_string = '\t'
-    #           else -> tab_string = ''
+        temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + line_feed
+
+        tab = ''
+        left_bracket = ''
+        right_bracket = ''
+        comma = ''
+        line_feed = '\n'
     return temp_value, data_name
 
 
