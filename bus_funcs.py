@@ -33,7 +33,7 @@ def table_merge(data):
             left_bracket = '('
         else:
             tab = '\t\t\t\t\t'
-        if counter == len(temp_data) - 1:
+        if counter == len(value.split(',')) - 1:
             right_bracket = ')'
             line_feed = ''
         else:

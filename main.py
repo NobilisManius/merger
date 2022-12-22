@@ -16,11 +16,10 @@ if __name__ == '__main__':
 
     data_files[0].cell[cell_name] = values
 
-    path_to_delete, file = '/' + 'results' + '/', 'final_solution' + '.lib'
-    path = os.path.join(path_to_delete, file)
+    # TODO: Add a new axis merge.
+    # TODO: Fix a bus merge.
+    # TODO: Redo the merge. I need to use data_files[0] as sample not as main data template.
 
-    if os.path.exists(path):
-        os.remove(path)
 
     with open('results' + '/' + 'final_solution' + '.lib', 'w', encoding='utf-8') as final_solution:
         data_files[0].dump(final_solution, '')

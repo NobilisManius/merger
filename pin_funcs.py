@@ -13,11 +13,8 @@ def data_pin_init(timing_data, key):
                 rise_transition_data.append(item.rise_transition)
     return cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data
 
-
-# TODO: make a dict in temp_data
 def table_merge(data):
     all_data = []
-    temp_value = ''
     temp_data = []
     names = []
     temp_dict = {}
@@ -37,7 +34,7 @@ def table_merge(data):
             all_data.append({name: value.values})
 
     for item in all_data:
-        for name, values  in item.items():
+        for name, values in item.items():
             names.append(name)
 
     names = list(set(names))
@@ -59,8 +56,8 @@ def table_merge(data):
             if counter == 0:
                 left_bracket = '('
             else:
-                tab = '\t\t\t\t\t'
-            if counter == len(value) - 1:
+                tab = '\t\t\t\t\t\t'
+            if counter == len(value.split(sep= ',')):
                 right_bracket = ')'
                 line_feed = ''
             else:
