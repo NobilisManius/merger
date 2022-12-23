@@ -61,7 +61,7 @@ def table_merge(data):
                 right_bracket = ')'
                 line_feed = ''
             else:
-                comma = ',' + '/'
+                comma = ',' + '\\'
 
             temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + line_feed
 
