@@ -11,7 +11,9 @@ def data_pin_init(timing_data, key):
                 cell_rise_data.append(item.cell_rise)
                 fall_transition_data.append(item.fall_transition)
                 rise_transition_data.append(item.rise_transition)
+        print(f"Data for {key} have been collected.")
     return cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data
+
 
 def table_merge(data):
     all_data = []
@@ -57,9 +59,18 @@ def table_merge(data):
                 left_bracket = '('
             else:
                 tab = '\t\t\t\t\t'
-            if counter == len(value.split(sep= ',')):
+            if counter == len(value.split(sep=',')) - 1:
+                #TODO: Cringe
                 right_bracket = ')'
                 line_feed = ''
+                temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + \
+                             line_feed
+                tab = ''
+                left_bracket = ''
+                right_bracket = ''
+                comma = ''
+                line_feed = '\n'
+                break
             else:
                 comma = ',' + '\\'
 
@@ -72,6 +83,7 @@ def table_merge(data):
             line_feed = '\n'
 
         all_data.append({name: temp_value})
+        print(f"The pin data of {name} have been merged.")
     return all_data, list(data_name)
 
 
@@ -117,6 +129,8 @@ def final_pin_data(data_files):
 
     for key in pins:
         if hasattr(timing_data[key][0][0], 'cell_fall'):
+            # TODO: maybe i should change the logic here
+
             cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data = data_pin_init(timing_data, key)
 
             cell_fall_data, cell_fall_names = table_merge(cell_fall_data)
@@ -132,10 +146,12 @@ def final_pin_data(data_files):
                     pins_final_data[key][index].cell_rise[cell_rise_names[index]].values = cell_rise_data[index][name]
             for index, name in enumerate(fall_transition_names):
                 if name in pins_final_data[key][index].fall_transition.keys():
-                    pins_final_data[key][index].fall_transition[fall_transition_names[index]].values = fall_transition_data[index][name]
+                    pins_final_data[key][index].fall_transition[fall_transition_names[index]].values = \
+                        fall_transition_data[index][name]
             for index, name in enumerate(rise_transition_names):
                 if name in pins_final_data[key][index].rise_transition.keys():
-                    pins_final_data[key][index].rise_transition[rise_transition_names[index]].values = rise_transition_data[index][name]
+                    pins_final_data[key][index].rise_transition[rise_transition_names[index]].values = \
+                        rise_transition_data[index][name]
 
     for key in keys_pins:
         for obj in pins:
@@ -143,5 +159,5 @@ def final_pin_data(data_files):
                 values[0].pin[key].timing[0] = pins_final_data[obj][0]
 
     final_data = values[0]
-
+    print(f"All the pins have been combined.")
     return final_data

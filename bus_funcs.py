@@ -1,20 +1,26 @@
-from logic import Liberty
-import os
+def data_bus_init(timing_data, key):
+    cell_fall_data = []
+    cell_rise_data = []
+    fall_transition_data = []
+    rise_transition_data = []
 
-
-def data_load(data_dir):
-    data_files = []
-    data = os.listdir(data_dir)
-
-    for count, file in enumerate(data):
-        lib = Liberty.load(data_dir + '/' + data[count])
-        data_files.append(lib)
-    return data_files
+    for bus in timing_data[key]:
+        for item in bus:
+            cell_fall_data.append(item.cell_fall)
+            cell_rise_data.append(item.cell_rise)
+            fall_transition_data.append(item.fall_transition)
+            rise_transition_data.append(item.rise_transition)
+        print(f"Data for {key} have been collected.")
+    return cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data
 
 
 def table_merge(data):
+    all_data = []
     temp_data = []
-    temp_value = ''
+    names = []
+    temp_dict = {}
+
+    data_name = set()
 
     left_bracket = ''
     right_bracket = ''
@@ -25,42 +31,60 @@ def table_merge(data):
 
     for item in data:
         for name, value in item.items():
-            data_name = name
-            temp_data.append(value.values)
+            data_name.add(name)
+            all_data.append({name: value.values})
 
-    for counter, value in enumerate(temp_data):
-        if counter == 0:
-            left_bracket = '('
-        else:
-            tab = '\t\t\t\t\t'
-        if counter == len(value.split(',')) - 1:
-            right_bracket = ')'
-            line_feed = ''
-        else:
-            comma = ','
+    for item in all_data:
+        for name, values in item.items():
+            names.append(name)
 
-        temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + line_feed
+    names = list(set(names))
 
-        tab = ''
-        left_bracket = ''
-        right_bracket = ''
-        comma = ''
-        line_feed = '\n'
-    return temp_value, data_name
+    for name in names:
+        for item in all_data:
+            if name in item.keys():
+                temp_data.append(item[name])
+        temp_dict[name] = temp_data
+        temp_data = []
 
+    all_data.clear()
 
-def data_bus_init(timing_data, key):
-    cell_fall_data = []
-    cell_rise_data = []
-    fall_transition_data = []
-    rise_transition_data = []
+    for name, values in temp_dict.items():
+        temp_data = temp_dict[name]
+        temp_value = ''
 
-    for item in timing_data[key]:
-        cell_fall_data.append(item[0].cell_fall)
-        cell_rise_data.append(item[0].cell_rise)
-        fall_transition_data.append(item[0].fall_transition)
-        rise_transition_data.append(item[0].rise_transition)
-    return cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data
+        for counter, value in enumerate(temp_data):
+            if counter == 0:
+                left_bracket = '('
+            else:
+                tab = '\t\t\t\t\t'
+            if counter == len(value.split(sep=',')) - 1:
+                #TODO: Cringe
+                right_bracket = ')'
+                line_feed = ''
+                temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + \
+                             line_feed
+                tab = ''
+                left_bracket = ''
+                right_bracket = ''
+                comma = ''
+                line_feed = '\n'
+                break
+            else:
+                comma = ',' + '\\'
+
+            temp_value = temp_value + tab + left_bracket + quotes + value + quotes + comma + right_bracket + line_feed
+
+            tab = ''
+            left_bracket = ''
+            right_bracket = ''
+            comma = ''
+            line_feed = '\n'
+
+        all_data.append({name: temp_value})
+        print(f"The bus data of {name} have been merged.")
+    return all_data, list(data_name)
+
 
 def final_bus_data(data_files):
     timing_pin_names = []
@@ -107,15 +131,28 @@ def final_bus_data(data_files):
     for key in pins:
         cell_fall_data, cell_rise_data, fall_transition_data, rise_transition_data = data_bus_init(timing_data, key)
 
-        cell_fall_data, cell_fall_name = table_merge(cell_fall_data)
-        cell_rise_data, cell_rise_name = table_merge(cell_rise_data)
-        fall_transition_data, fall_transition_name = table_merge(fall_transition_data)
-        rise_transition_data, rise_transition_name = table_merge(rise_transition_data)
+        cell_fall_data, cell_fall_names = table_merge(cell_fall_data)
+        cell_rise_data, cell_rise_names = table_merge(cell_rise_data)
+        fall_transition_data, fall_transition_names = table_merge(fall_transition_data)
+        rise_transition_data, rise_transition_names = table_merge(rise_transition_data)
 
-        bus_final_data[key][0].cell_fall[cell_fall_name].values = cell_fall_data
-        bus_final_data[key][0].cell_rise[cell_rise_name].values = cell_rise_data
-        bus_final_data[key][0].fall_transition[fall_transition_name].values = fall_transition_data
-        bus_final_data[key][0].rise_transition[rise_transition_name].values = rise_transition_data
+        for index, name in enumerate(cell_fall_names):
+            if name in bus_final_data[key][index].cell_fall.keys():
+                bus_final_data[key][index].cell_fall[cell_fall_names[index]].values = cell_fall_data[index][name]
+
+        for index, name in enumerate(cell_rise_names):
+            if name in bus_final_data[key][index].cell_rise.keys():
+                bus_final_data[key][index].cell_rise[cell_rise_names[index]].values = cell_rise_data[index][name]
+
+        for index, name in enumerate(fall_transition_names):
+            if name in bus_final_data[key][index].fall_transition.keys():
+                bus_final_data[key][index].fall_transition[fall_transition_names[index]].values = \
+                    fall_transition_data[index][name]
+
+        for index, name in enumerate(rise_transition_names):
+            if name in bus_final_data[key][index].rise_transition.keys():
+                bus_final_data[key][index].rise_transition[rise_transition_names[index]].values = \
+                    rise_transition_data[index][name]
 
     for key in keys_bus:
         for item in pins:
@@ -123,5 +160,5 @@ def final_bus_data(data_files):
                 values[0].bus[key].pin[item].timing[0] = bus_final_data[item][0]
 
     final_data = values[0]
-
+    print(f"All the buses have been combined.")
     return final_data
